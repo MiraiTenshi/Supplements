@@ -147,10 +147,12 @@
     --pill-lunch: #2a2a1a;
     --pill-dinner: #2a1a1a;
     --pill-bed: #1a1a2a;
+    --pill-iron: #2a1a22;
     --pill-morning-text: #6ecf8e;
     --pill-lunch-text: #c9bc6e;
     --pill-dinner-text: #cf8e6e;
     --pill-bed-text: #8e8ecf;
+    --pill-iron-text: #cf6e8e;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -375,6 +377,7 @@
   .pill-lunch   { background: var(--pill-lunch);   color: var(--pill-lunch-text);   }
   .pill-dinner  { background: var(--pill-dinner);  color: var(--pill-dinner-text);  }
   .pill-bed     { background: var(--pill-bed);     color: var(--pill-bed-text);     }
+  .pill-iron    { background: var(--pill-iron);    color: var(--pill-iron-text);    }
 
   .all-done {
     display: none;
@@ -482,14 +485,6 @@
 <script>
 const SUPPLEMENTS = [
   {
-    id: 'omni-biotic',
-    name: 'Omni Biotic 10',
-    detail: 'Stir ½–1 sachet in 125ml room-temp water · wait 1 min · stir again · drink',
-    time: 'On Waking',
-    timeKey: 'waking',
-    pillClass: 'pill-bed'
-  },
-  {
     id: 'artichoke',
     name: 'Artichoke 320mg',
     detail: 'Hepar-SL · 20–30 min before breakfast',
@@ -506,6 +501,14 @@ const SUPPLEMENTS = [
     pillClass: 'pill-morning'
   },
   {
+    id: 'iron',
+    name: 'Iron + Vitamin C',
+    detail: 'ProFuel EISEN 20mg · on a fairly empty stomach · avoid coffee/tea/dairy for ~1hr · keep well apart from Zinc & Magnesium',
+    time: 'Late Morning',
+    timeKey: 'lateMorning',
+    pillClass: 'pill-iron'
+  },
+  {
     id: 'd3k2',
     name: 'Vitamin D3 + K2',
     detail: 'Liquid · with your fattiest meal (lunch or dinner)',
@@ -516,7 +519,7 @@ const SUPPLEMENTS = [
   {
     id: 'zinc',
     name: 'Zinc 25mg',
-    detail: 'With dinner · never on empty stomach',
+    detail: 'With dinner · never on empty stomach · keep apart from Iron',
     time: 'Dinner',
     timeKey: 'dinner',
     pillClass: 'pill-dinner'
@@ -524,7 +527,7 @@ const SUPPLEMENTS = [
   {
     id: 'magnesium',
     name: 'Magnesium Bisglycinate',
-    detail: 'At bedtime · after dinner',
+    detail: 'At bedtime · after dinner · keep apart from Iron',
     time: 'Bedtime',
     timeKey: 'bed',
     pillClass: 'pill-bed'
@@ -532,11 +535,11 @@ const SUPPLEMENTS = [
 ];
 
 const GROUPS = [
-  { key: 'waking',  label: 'On Waking' },
-  { key: 'morning', label: 'Morning' },
-  { key: 'lunch',   label: 'Midday' },
-  { key: 'dinner',  label: 'Evening' },
-  { key: 'bed',     label: 'Bedtime' }
+  { key: 'morning',     label: 'Morning' },
+  { key: 'lateMorning',  label: 'Late Morning' },
+  { key: 'lunch',        label: 'Midday' },
+  { key: 'dinner',       label: 'Evening' },
+  { key: 'bed',          label: 'Bedtime' }
 ];
 
 // ─── Date key in CET (UTC+1, ignoring DST for simplicity; CET is UTC+1) ───
