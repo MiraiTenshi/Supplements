@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="My Supplements">
+<title>Daily Supplements</title>
+<script>
+(function() {
+  // Draw pill icon on canvas and inject as base64 PNG into manifest + apple-touch-icon
+  function generateIcon(size) {
+    const c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    const ctx = c.getContext('2d');
+    const r = size * 0.22; // corner radius for rounded square bg
+
+    // Background rounded square
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(size - r, 0);
+    ctx.quadraticCurveTo(size, 0, size, r);
+    ctx.lineTo(size, size - r);
+    ctx.quadraticCurveTo(size, size, size - r, size);
+    ctx.lineTo(r, size);
+    ctx.quadraticCurveTo(0, size, 0, size - r);
+    ctx.lineTo(0, r);
+    ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath();
+    ctx.fillStyle = '#131f18';
+    ctx.fill();
+
+    // Draw pill (capsule) rotated 45 degrees
+    const cx = size / 2, cy = size / 2;
+    const pw = size * 0.62, ph = size * 0.26;
+    const pr = ph / 2;
+    const angle = -Math.PI / 4;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+
+    // Clip left half (green)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(-pw/2, -ph/2, pw/2, ph);
+    ctx.clip();
+    // Draw full capsule (left half shows green)
+    ctx.beginPath();
+    ctx.moveTo(-pw/2 + pr, -ph/2);
+    ctx.lineTo(pw/2 - pr, -ph/2);
+    ctx.arc(pw/2 - pr, 0, pr, -Math.PI/2, Math.PI/2);
+    ctx.lineTo(-pw/2 + pr, ph/2);
+    ctx.arc(-pw/2 + pr, 0, pr, Math.PI/2, -Math.PI/2);
+    ctx.closePath();
+    ctx.fillStyle = '#5dbe82';
+    ctx.fill();
+    ctx.restore();
+
+    // Clip right half (dark)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, -ph/2, pw/2, ph);
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(-pw/2 + pr, -ph/2);
+    ctx.lineTo(pw/2 - pr, -ph/2);
+    ctx.arc(pw/2 - pr, 0, pr, -Math.PI/2, Math.PI/2);
+    ctx.lineTo(-pw/2 + pr, ph/2);
+    ctx.arc(-pw/2 + pr, 0, pr, Math.PI/2, -Math.PI/2);
+    ctx.closePath();
+    ctx.fillStyle = '#243328';
+    ctx.fill();
+    ctx.restore();
+
+    // Dividing line
+    ctx.beginPath();
+    ctx.moveTo(0, -ph/2 - 1);
+    ctx.lineTo(0, ph/2 + 1);
+    ctx.strokeStyle = '#131f18';
+    ctx.lineWidth = size * 0.025;
+    ctx.stroke();
+
+    ctx.restore();
+
+    // Small accent dots
+    ctx.beginPath();
+    ctx.arc(size * 0.78, size * 0.22, size * 0.025, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(93,190,130,0.45)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(size * 0.84, size * 0.30, size * 0.015, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(93,190,130,0.25)';
+    ctx.fill();
+
+    return c.toDataURL('image/png');
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    const icon192 = generateIcon(192);
+    const icon512 = generateIcon(512);
+
+    // Apple touch icon
+    const aLink = document.createElement('link');
+    aLink.rel = 'apple-touch-icon';
+    aLink.href = icon192;
+    document.head.appendChild(aLink);
+
+    // PWA Manifest
+    const manifest = {
+      name: "Daily Supplements",
+      short_name: "Supplements",
+      start_url: "./",
+      display: "standalone",
+      background_color: "#0c1610",
+      theme_color: "#0c1610",
+      icons: [
+        { src: icon192, sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: icon512, sizes: "512x512", type: "image/png", purpose: "maskable" }
+      ]
+    };
+    const mBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    const mUrl = URL.createObjectURL(mBlob);
+    const mLink = document.createElement('link');
+    mLink.rel = 'manifest';
+    mLink.href = mUrl;
+    document.head.appendChild(mLink);
+  });
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c1610;
+    --surface: #131f18;
+    --surface2: #1a2b20;
+    --border: #243328;
+    --accent: #5dbe82;
+    --accent-dim: #2d6644;
+    --text: #dceadf;
+    --text-muted: #6b8a73;
+    --text-dim: #3d5944;
+    --checked-bg: #172b1e;
+    --pill-morning: #1e3a2a;
+    --pill-lunch: #2a2a1a;
+    --pill-dinner: #2a1a1a;
+    --pill-bed: #1a1a2a;
+    --pill-iron: #2a1a22;
+    --pill-morning-text: #6ecf8e;
+    --pill-lunch-text: #c9bc6e;
+    --pill-dinner-text: #cf8e6e;
+    --pill-bed-text: #8e8ecf;
+    --pill-iron-text: #cf6e8e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 40px 0;
+    font-weight: 300;
+  }
+
+  header {
+    padding: 40px 24px 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(93,190,130,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--text);
+    font-weight: 400;
+    line-height: 1.15;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .date-row {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .progress-bar-wrap {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    min-width: 50px;
+    text-align: right;
+  }
+
+  .sections {
+    padding: 28px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .time-group-label {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 20px 4px 8px;
+  }
+
+  .time-group-label:first-child {
+    padding-top: 4px;
+  }
+
+  .supplement-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .supplement-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: 14px;
+  }
+
+  .supplement-card:active::before {
+    opacity: 0.04;
+  }
+
+  .supplement-card.checked {
+    background: var(--checked-bg);
+    border-color: var(--accent-dim);
+  }
+
+  .check-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    z-index: 1;
+  }
+
+  .supplement-card.checked .check-circle {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  .check-icon {
+    opacity: 0;
+    transform: scale(0.4) rotate(-10deg);
+    transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .supplement-card.checked .check-icon {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .card-body {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  .supp-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.25s;
+    line-height: 1.3;
+  }
+
+  .supplement-card.checked .supp-name {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-dim);
+  }
+
+  .supp-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    line-height: 1.4;
+    transition: color 0.25s;
+  }
+
+  .supplement-card.checked .supp-detail {
+    color: var(--text-dim);
+  }
+
+  .time-pill {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pill-morning { background: var(--pill-morning); color: var(--pill-morning-text); }
+  .pill-lunch   { background: var(--pill-lunch);   color: var(--pill-lunch-text);   }
+  .pill-dinner  { background: var(--pill-dinner);  color: var(--pill-dinner-text);  }
+  .pill-bed     { background: var(--pill-bed);     color: var(--pill-bed-text);     }
+  .pill-iron    { background: var(--pill-iron);    color: var(--pill-iron-text);    }
+
+  .all-done {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .all-done.visible { display: flex; }
+
+  .done-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--accent-dim);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pop 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .done-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .done-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 240px;
+    line-height: 1.6;
+  }
+
+  .reset-info {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 28px 24px 0;
+    letter-spacing: 0.3px;
+  }
+
+  .reset-info span {
+    color: var(--text-muted);
+  }
+
+  /* Ripple on tap */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple-anim 0.4s linear;
+    background: rgba(93,190,130,0.15);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes ripple-anim {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  @media (prefers-color-scheme: light) {
+    /* stays dark — this is intentional for a health app */
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Daily Routine</div>
+  <h1>Your <em>supplements</em><br>today</h1>
+  <div class="date-row" id="dateDisplay"></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0 / 6</div>
+  </div>
+</header>
+
+<div class="sections" id="supplementList"></div>
+
+<div class="all-done" id="allDone">
+  <div class="done-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5dbe82" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="done-title">All done for today!</div>
+  <div class="done-sub">Great job taking care of yourself. See you tomorrow.</div>
+</div>
+
+<div class="reset-info">Resets automatically at <span>midnight CET</span></div>
+
+<script>
+const SUPPLEMENTS = [
+  {
+    id: 'artichoke',
+    name: 'Artichoke 320mg',
+    detail: 'Hepar-SL · 20–30 min before breakfast',
+    time: 'Before Breakfast',
+    timeKey: 'morning',
+    pillClass: 'pill-morning'
+  },
+  {
+    id: 'bcomplex',
+    name: 'Vitamin B Complex',
+    detail: 'ProFuel · with breakfast and food',
+    time: 'Breakfast',
+    timeKey: 'morning',
+    pillClass: 'pill-morning'
+  },
+  {
+    id: 'iron',
+    name: 'Iron + Vitamin C',
+    detail: 'ProFuel EISEN 20mg · on a fairly empty stomach · avoid coffee/tea/dairy for ~1hr · keep well apart from Zinc & Magnesium',
+    time: 'Late Morning',
+    timeKey: 'lateMorning',
+    pillClass: 'pill-iron'
+  },
+  {
+    id: 'd3k2',
+    name: 'Vitamin D3 + K2',
+    detail: 'Liquid · with your fattiest meal (lunch or dinner)',
+    time: 'Lunch / Dinner',
+    timeKey: 'lunch',
+    pillClass: 'pill-lunch'
+  },
+  {
+    id: 'zinc',
+    name: 'Zinc 25mg',
+    detail: 'With dinner · never on empty stomach · keep apart from Iron',
+    time: 'Dinner',
+    timeKey: 'dinner',
+    pillClass: 'pill-dinner'
+  },
+  {
+    id: 'magnesium',
+    name: 'Magnesium Bisglycinate',
+    detail: 'At bedtime · after dinner · keep apart from Iron',
+    time: 'Bedtime',
+    timeKey: 'bed',
+    pillClass: 'pill-bed'
+  }
+];
+
+const GROUPS = [
+  { key: 'morning',     label: 'Morning' },
+  { key: 'lateMorning',  label: 'Late Morning' },
+  { key: 'lunch',        label: 'Midday' },
+  { key: 'dinner',       label: 'Evening' },
+  { key: 'bed',          label: 'Bedtime' }
+];
+
+// ─── Date key in CET (UTC+1, ignoring DST for simplicity; CET is UTC+1) ───
+// For proper DST handling we use Intl.DateTimeFormat
+function getCETDateKey() {
+  const now = new Date();
+  const cetStr = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }); // YYYY-MM-DD
+  return cetStr;
+}
+
+const STORAGE_KEY = 'supp_tracker_v2';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    const todayKey = getCETDateKey();
+    if (parsed.dateKey !== todayKey) {
+      // New day — wipe checked state
+      return {};
+    }
+    return parsed.checked || {};
+  } catch(e) {
+    return {};
+  }
+}
+
+function saveState(checked) {
+  const todayKey = getCETDateKey();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ dateKey: todayKey, checked }));
+}
+
+let checkedState = loadState();
+
+function renderDate() {
+  const now = new Date();
+  const opts = { timeZone: 'Europe/Berlin', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const formatted = now.toLocaleDateString('en-GB', opts);
+  document.getElementById('dateDisplay').textContent = formatted;
+}
+
+function updateProgress() {
+  const total = SUPPLEMENTS.length;
+  const done = Object.values(checkedState).filter(Boolean).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = done + ' / ' + total;
+
+  const allDoneEl = document.getElementById('allDone');
+  const listEl = document.getElementById('supplementList');
+  if (done === total) {
+    allDoneEl.classList.add('visible');
+    listEl.style.display = 'none';
+  } else {
+    allDoneEl.classList.remove('visible');
+    listEl.style.display = '';
+  }
+}
+
+function render() {
+  const container = document.getElementById('supplementList');
+  container.innerHTML = '';
+
+  GROUPS.forEach(group => {
+    const groupSupps = SUPPLEMENTS.filter(s => s.timeKey === group.key);
+    if (groupSupps.length === 0) return;
+
+    const label = document.createElement('div');
+    label.className = 'time-group-label';
+    label.textContent = group.label;
+    container.appendChild(label);
+
+    groupSupps.forEach(supp => {
+      const card = document.createElement('div');
+      card.className = 'supplement-card' + (checkedState[supp.id] ? ' checked' : '');
+      card.dataset.id = supp.id;
+
+      card.innerHTML = `
+        <div class="check-circle">
+          <svg class="check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <div class="supp-name">${supp.name}</div>
+          <div class="supp-detail">${supp.detail}</div>
+        </div>
+        <div class="time-pill ${supp.pillClass}">${supp.time}</div>
+      `;
+
+      card.addEventListener('click', (e) => {
+        // Ripple
+        const rect = card.getBoundingClientRect();
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        const size = Math.max(rect.width, rect.height) * 2;
+        ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size/2}px;top:${e.clientY - rect.top - size/2}px`;
+        card.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+
+        // Toggle
+        checkedState[supp.id] = !checkedState[supp.id];
+        saveState(checkedState);
+        card.classList.toggle('checked', checkedState[supp.id]);
+        updateProgress();
+      });
+
+      container.appendChild(card);
+    });
+  });
+
+  updateProgress();
+}
+
+// ─── Midnight reset check ───
+function scheduleNextCheck() {
+  const now = new Date();
+  // Get next midnight in Berlin time
+  const berlinStr = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' });
+  const [y, m, d] = berlinStr.split('-').map(Number);
+  // Tomorrow midnight in Berlin = construct date in Berlin and get UTC ms
+  const tomorrowBerlin = new Date(Date.UTC(y, m - 1, d + 1, 0, 0, 0));
+  // Adjust for Berlin offset (rough: UTC+1 in winter, UTC+2 in summer)
+  const berlinOffset = -new Date().toLocaleString('en', { timeZone: 'Europe/Berlin', timeZoneName: 'shortOffset' })
+    .match(/GMT([+-]\d+)/)?.[1] * 60 * 60 * 1000 || -3600000;
+  const msUntilMidnight = tomorrowBerlin.getTime() + berlinOffset - Date.now();
+
+  setTimeout(() => {
+    checkedState = {};
+    saveState(checkedState);
+    render();
+    renderDate();
+    scheduleNextCheck();
+  }, Math.max(msUntilMidnight, 1000));
+}
+
+// ─── Also check on visibility restore (user coming back to tab/app) ───
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const freshState = loadState();
+    // If state was wiped (new day), re-render
+    if (Object.keys(freshState).length === 0 && Object.keys(checkedState).length > 0) {
+      checkedState = {};
+      render();
+      renderDate();
+    } else {
+      checkedState = freshState;
+      render();
+    }
+  }
+});
+
+// ─── Init ───
+renderDate();
+render();
+scheduleNextCheck();
+</script>
+</body>
+</html>
